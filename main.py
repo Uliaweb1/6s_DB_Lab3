@@ -57,15 +57,15 @@ if __name__ == '__main__':
     MyWeatherRecord.__table__.drop(engine, checkfirst=True)
     Base.metadata.create_all(engine)
     for i, row in df_slice.head(5).iterrows():
-        print(row)
+        # print(row)
         new_instance = MyWeatherRecord(
             country = row["country"],
             wind_mph = row["wind_mph"],
             wind_kph = row["wind_kph"],
             wind_degree = row["wind_degree"],
-            # wind_direction = row["wind_direction"],
-            # last_updated = row["last_updated"],
-            # sunrise = row["sunrise"]
+            wind_direction = row["wind_direction"],
+            last_updated = row["last_updated"],
+            sunrise = row["sunrise"]
         )
         session.add(new_instance)
     session.commit()
