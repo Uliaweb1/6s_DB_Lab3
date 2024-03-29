@@ -2,7 +2,7 @@ import pandas as pd
 import sqlalchemy
 from sqlalchemy.schema import CreateTable
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import DeclarativeBase, mapped_column
+from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
 # import psycopg2
 
 class Base(DeclarativeBase):
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     print(f"SQLAlchemy: {sqlalchemy.__version__}")
 
     column_types = df.dtypes.to_dict()
-    for column, dtype in column_types.items():
-        print(f"\t{column}: {dtype}")
+    # for column, dtype in column_types.items():
+    #     print(f"\t{column}: {dtype}")
 
     column_list = []
     column_list.append("country") # Text
@@ -45,11 +45,30 @@ if __name__ == '__main__':
     column_list.extend(["wind_mph", "wind_kph", "wind_degree", "wind_direction"])
     df_slice = df[column_list]
 
-    print(df_slice.head(5))
-    print(CreateTable(MyWeatherRecord.__table__).compile(dialect=postgresql.dialect()))
+    # print(df_slice.head(5))
+    # for i, row in df_slice.head(5).iterrows():
+    #     print(row)
+    # print(CreateTable(MyWeatherRecord.__table__).compile(dialect=postgresql.dialect()))
 
     engine = sqlalchemy.create_engine('postgresql://Kolomiets:123a1@localhost:5432/S6_DB_Lab3')
-    table_name = 'weather'
-    df_slice.to_sql(table_name, engine, if_exists='replace', index=False)
+    Base.metadata.bind = engine
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    MyWeatherRecord.__table__.drop(engine, checkfirst=True)
+    Base.metadata.create_all(engine)
+    for i, row in df_slice.head(5).iterrows():
+        print(row)
+        new_instance = MyWeatherRecord(
+            country = row["country"],
+            wind_mph = row["wind_mph"],
+            wind_kph = row["wind_kph"],
+            wind_degree = row["wind_degree"],
+            # wind_direction = row["wind_direction"],
+            # last_updated = row["last_updated"],
+            # sunrise = row["sunrise"]
+        )
+        session.add(new_instance)
+    session.commit()
+    session.close()
 
 
