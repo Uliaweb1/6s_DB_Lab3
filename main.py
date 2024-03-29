@@ -16,7 +16,7 @@ class MyWeatherRecord(Base):
     wind_mph = mapped_column(sqlalchemy.DECIMAL)
     wind_kph = mapped_column(sqlalchemy.DECIMAL) # floating point number
     wind_degree = mapped_column(sqlalchemy.Integer) # Integer
-    wind_direction = mapped_column(sqlalchemy.Enum("ENE", "SSW", "WSW", "W", "NNW", name = "Direction")) # enumeration
+    wind_direction = mapped_column(sqlalchemy.Enum('SSE', 'NW', 'W', 'NE', 'SE', 'WNW', 'N', 'NNW', 'E', 'WSW', 'NNE', 'ENE', 'SW', 'S', 'SSW', 'ESE', name = "Direction")) # enumeration
     last_updated = mapped_column(sqlalchemy.DateTime) # Date
     sunrise = mapped_column(sqlalchemy.Time) # Time
 
@@ -48,6 +48,14 @@ if __name__ == '__main__':
     # print(df_slice.head(5))
     # for i, row in df_slice.head(5).iterrows():
     #     print(row)
+
+    # Uncomment to get all directions
+    # directions = {"N"}
+    # for i, row in df_slice.iterrows():
+    #         directions.add(row["wind_direction"])
+    # print(directions)
+
+    # Uncomment to print the SQL query for creationg the PostgreSQL table
     # print(CreateTable(MyWeatherRecord.__table__).compile(dialect=postgresql.dialect()))
 
     engine = sqlalchemy.create_engine('postgresql://Kolomiets:123a1@localhost:5432/S6_DB_Lab3')
@@ -56,7 +64,7 @@ if __name__ == '__main__':
     session = Session()
     MyWeatherRecord.__table__.drop(engine, checkfirst=True)
     Base.metadata.create_all(engine)
-    for i, row in df_slice.head(5).iterrows():
+    for i, row in df_slice.iterrows():
         # print(row)
         new_instance = MyWeatherRecord(
             country = row["country"],
