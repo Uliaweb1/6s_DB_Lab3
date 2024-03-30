@@ -50,4 +50,4 @@ def upgrade() -> None:
     session.close()
 
 def downgrade() -> None:
-    pass
+    op.execute("DELETE FROM weather")

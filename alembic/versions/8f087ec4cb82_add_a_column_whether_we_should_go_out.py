@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.add_column('weather', sa.Column('should_go_out', sa.Boolean))
-    op.execute("UPDATE weather SET should_go_out = (wind_kph > 3.6)")
+    op.execute("UPDATE weather SET should_go_out = (wind_kph < 20)")
 
 def downgrade() -> None:
     op.drop_column('weather', 'should_go_out')
