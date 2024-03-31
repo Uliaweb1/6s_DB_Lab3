@@ -20,38 +20,37 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
-    # Get connection strings from Alembic configuration
     source_db_uri = al.context.config.get_main_option('source_db_uri')
     destination_db_uri = al.context.config.get_main_option('destination_db_uri')
 
-    # Connect to source and destination databases
     source_engine = sa.create_engine(source_db_uri)
     destination_engine = sa.create_engine(destination_db_uri)
 
-    # Query data from source database
-    # source_conn = source_engine.connect()
-    # source_session = sa.orm.sessionmaker(bind=engine)
-    # source_metadata = sa.MetaData(bind=source_conn)
+    source_conn = source_engine.connect()
     source_metadata = sa.MetaData()
     source_metadata.reflect(bind=source_engine)
-    # source_table = sa.Table('weather', source_metadata, autoload=True)
-    # source_table = sa.Table('weather', source_metadata)
-    # source_data = source_conn.execute(source_table.select()).fetchall()
+    source_table = sa.Table('weather', source_metadata)
+    source_data = source_conn.execute(source_table.select()).fetchall()
 
-    # Insert data into destination database
-    # destination_conn = destination_engine.connect()
-    tables_to_migrate = [source_metadata.tables["weather"]]
-    source_metadata.create_all(destination_engine, tables_to_migrate)
-    # destination_table = sa.Table('weather', destination_metadata, autoload=True)
-    # destination_conn.execute(destination_table.insert(), [dict(row) for row in source_data])
-
+    destination_conn = destination_engine.connect()
+    destination_metadata = sa.MetaData()
+    destination_table = sa.Table('weather', destination_metadata,
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('country', sa.Text(), nullable=True),
+        sa.Column('wind_mph', sa.DECIMAL(), nullable=True),
+        sa.Column('wind_kph', sa.DECIMAL(), nullable=True),
+        sa.Column('wind_degree', sa.Integer(), nullable=True),
+        sa.Column('wind_direction', sa.Enum('SSE', 'NW', 'W', 'NE', 'SE', 'WNW', 'N', 'NNW', 'E', 'WSW', 'NNE', 'ENE', 'SW', 'S', 'SSW', 'ESE', name='direction', create_type=False), nullable=True),
+        sa.Column('last_updated', sa.DateTime(), nullable=True),
+        sa.Column('sunrise', sa.Time(), nullable=True),
+        sa.Column('should_go_out', sa.Boolean(), nullable=True),
+        )
+    destination_metadata.create_all(destination_engine)
+    destination_conn.execute(destination_table.insert(), [row._asdict() for row in source_data])
 
 def downgrade() -> None:
     destination_db_uri = al.context.config.get_main_option('destination_db_uri')
     destination_engine = sa.create_engine(destination_db_uri)
-    destination_conn = destination_engine.connect()
-    # destination_metadata = sa.MetaData(bind=destination_conn)
-    # destination_table = sa.Table('destination_table', destination_metadata, autoload=True)
-    # destination_metadata = sa.MetaData()
-    # destination_metadata.drop_all(destination_engine, checkfirst=False)
-
+    destination_metadata = sa.MetaData()
+    destination_metadata.reflect(bind=destination_engine)
+    destination_metadata.drop_all(destination_engine, checkfirst=True)
