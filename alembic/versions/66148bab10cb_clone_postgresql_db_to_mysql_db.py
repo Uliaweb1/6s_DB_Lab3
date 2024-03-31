@@ -20,18 +20,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
-    source_db_uri = al.context.config.get_main_option('source_db_uri')
-    destination_db_uri = al.context.config.get_main_option('destination_db_uri')
-
-    source_engine = sa.create_engine(source_db_uri)
-    destination_engine = sa.create_engine(destination_db_uri)
-
-    source_conn = source_engine.connect()
+    source_conn = op.get_bind()
     source_metadata = sa.MetaData()
-    source_metadata.reflect(bind=source_engine)
+    source_metadata.reflect(bind=source_conn)
     source_table = sa.Table('weather', source_metadata)
     source_data = source_conn.execute(source_table.select()).fetchall()
 
+    destination_db_uri = al.context.config.get_main_option('destination_db_uri')
+    destination_engine = sa.create_engine(destination_db_uri)
     destination_conn = destination_engine.connect()
     destination_metadata = sa.MetaData()
     destination_table = sa.Table('weather', destination_metadata,
