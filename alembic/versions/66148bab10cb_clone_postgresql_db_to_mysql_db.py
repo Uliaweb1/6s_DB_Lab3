@@ -43,6 +43,8 @@ def upgrade():
         )
     destination_metadata.create_all(destination_engine)
     destination_conn.execute(destination_table.insert(), [row._asdict() for row in source_data])
+    destination_conn.commit()
+    destination_conn.close()
 
 def downgrade() -> None:
     destination_db_uri = al.context.config.get_main_option('destination_db_uri')
